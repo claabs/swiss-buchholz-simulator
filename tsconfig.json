@@ -1,0 +1,15 @@
+{
+  "extends": ["@tsconfig/strictest/tsconfig", "@tsconfig/node18/tsconfig"],
+  "compilerOptions": {
+    "outDir": "./dist", /* Redirect output structure to the directory. */
+    "inlineSourceMap": true, // Inline sourcemaps for jest debugging
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "allowJs": true,
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+  ]
+}
