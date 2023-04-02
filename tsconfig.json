@@ -1,6 +1,10 @@
 {
-  "extends": ["@tsconfig/strictest/tsconfig", "@tsconfig/node18/tsconfig"],
+  "extends": [
+    "@tsconfig/strictest/tsconfig",
+    "@tsconfig/node18/tsconfig"
+  ],
   "compilerOptions": {
+    "verbatimModuleSyntax": false,
     "outDir": "./dist", /* Redirect output structure to the directory. */
     "inlineSourceMap": true, // Inline sourcemaps for jest debugging
     "typeRoots": [

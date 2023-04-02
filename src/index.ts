@@ -1,30 +1,8 @@
-type RmrEuATeam =
-  | 'VP'
-  | 'MOUZ'
-  | 'fnatic'
-  | 'Navi'
-  | 'FaZe'
-  | 'Sprout'
-  | 'BNE'
-  | 'B8'
-  | 'Viperio'
-  | 'Into the Breach'
-  | '1Win'
-  | 'Apeks'
-  | 'GamerLegion'
-  | 'OG'
-  | 'Falcons'
-  | 'SAW';
+import { MatchupProbability, RmrEuATeam, rmrEuAProbabilities, rmrEuASeeding } from './settings';
 
 interface Matchup<T extends string> {
   teamA: TeamStandingWithDifficulty<T>;
   teamB: TeamStandingWithDifficulty<T>;
-}
-
-interface MatchupProbability<T extends string> {
-  teamA: T;
-  teamB: T;
-  teamAWinrate: number;
 }
 
 interface TeamStanding<T extends string> {
@@ -45,62 +23,11 @@ interface QualElimOutput<T extends string> {
   competitors: TeamStanding<T>[];
 }
 
-const rmrEuASeeding: Record<string, RmrEuATeam> = {
-  1: 'VP',
-  2: 'MOUZ',
-  3: 'fnatic',
-  4: 'Navi',
-  5: 'FaZe',
-  6: 'Sprout',
-  7: 'BNE',
-  8: 'B8',
-  9: 'Viperio',
-  10: 'Into the Breach',
-  11: '1Win',
-  12: 'Apeks',
-  13: 'GamerLegion',
-  14: 'OG',
-  15: 'Falcons',
-  16: 'SAW',
-};
-
-const rmrEuAProbabilities: MatchupProbability<RmrEuATeam>[] = [
-  {
-    teamA: 'VP',
-    teamB: 'MOUZ',
-    teamAWinrate: 0.6,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'fnatic',
-    teamAWinrate: 0.65,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'Navi',
-    teamAWinrate: 0.35,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'FaZe',
-    teamAWinrate: 0.4,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'Sprout',
-    teamAWinrate: 0.85,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'BNE',
-    teamAWinrate: 0.6,
-  },
-  {
-    teamA: 'VP',
-    teamB: 'B8',
-    teamAWinrate: 0.95,
-  },
-];
+interface TeamResultsCounts<T extends string> {
+  qualified: Map<T, number>;
+  allWins: Map<T, number>;
+  allLosses: Map<T, number>;
+}
 
 const splitStandingsToRecordGroups = <T extends string>(
   teamsStandings: TeamStandingWithDifficulty<T>[]
@@ -141,16 +68,31 @@ const sortRecordGroup = <T extends string>(
     return teamA.seed - teamB.seed;
   });
 
-const sortGroup = <T extends string>(
-  group: TeamStandingWithDifficulty<T>[]
-): TeamStandingWithDifficulty<T>[] =>
-  group.sort((teamA, teamB) => {
-    const winDifferentialDiff = teamB.wins - teamB.losses - (teamA.wins - teamA.losses);
-    if (winDifferentialDiff !== 0) return winDifferentialDiff;
-    const difficultyDiff = teamA.difficulty - teamB.difficulty;
-    if (difficultyDiff !== 0) return difficultyDiff;
-    return teamA.seed - teamB.seed;
+const categorizeResults = <T extends string>(
+  results: TeamStanding<T>[],
+  resultCounts?: TeamResultsCounts<T>,
+  qualElimMax = 3
+): TeamResultsCounts<T> => {
+  const teamResultsCounts: TeamResultsCounts<T> = resultCounts || {
+    allLosses: new Map(),
+    allWins: new Map(),
+    qualified: new Map(),
+  };
+  results.forEach((teamStanding) => {
+    if (teamStanding.wins === qualElimMax) {
+      const qualCount = teamResultsCounts.qualified.get(teamStanding.name) || 0;
+      teamResultsCounts.qualified.set(teamStanding.name, qualCount + 1);
+      if (teamStanding.losses === 0) {
+        const allWinsCount = teamResultsCounts.allWins.get(teamStanding.name) || 0;
+        teamResultsCounts.allWins.set(teamStanding.name, allWinsCount + 1);
+      }
+    } else if (teamStanding.losses === qualElimMax && teamStanding.wins === 0) {
+      const allLossesCount = teamResultsCounts.allLosses.get(teamStanding.name) || 0;
+      teamResultsCounts.allLosses.set(teamStanding.name, allLossesCount + 1);
+    }
   });
+  return teamResultsCounts;
+};
 
 const matchRecordGroup = <T extends string>(
   recordGroup: TeamStandingWithDifficulty<T>[]
@@ -189,14 +131,18 @@ const calculateMatchups = <T extends string>(teamsStandings: TeamStanding<T>[]):
 
 const simulateMatchup = <T extends string>(
   matchup: Matchup<T>,
-  matchupProbabilities: MatchupProbability<T>[]
+  matchupProbabilities: MatchupProbability<T>[],
+  qualElimMax = 3
 ): TeamStanding<T>[] => {
   const probabilityListing = matchupProbabilities.find(
     (probListing) =>
       (probListing.teamA === matchup.teamA.name && probListing.teamB === matchup.teamB.name) ||
       (probListing.teamA === matchup.teamB.name && probListing.teamB === matchup.teamA.name)
   );
-  const teamAWinrate = probabilityListing?.teamAWinrate || 0.5;
+  const isQualElim =
+    matchup.teamA.wins === qualElimMax - 1 || matchup.teamA.losses === qualElimMax - 1;
+  const teamAWinrate =
+    (isQualElim ? probabilityListing?.bo3TeamAWinrate : probabilityListing?.bo1TeamAWinrate) || 0.5;
   const swapTeams = probabilityListing ? probabilityListing.teamA !== matchup.teamA.name : false;
 
   const teamAWins = Math.random() <= teamAWinrate;
@@ -267,11 +213,17 @@ const simulateEvent = <T extends string>(
 };
 
 function main() {
-  const { qualified, eliminated } = simulateEvent(rmrEuASeeding, rmrEuAProbabilities);
-  const results = [...qualified, ...eliminated];
-  const resultsWithDifficulty = calculateDifficulties(results);
-  const sortedResults = sortGroup(resultsWithDifficulty);
-  console.log(sortedResults);
+  let categorizedResults: TeamResultsCounts<RmrEuATeam> = {
+    allLosses: new Map(),
+    allWins: new Map(),
+    qualified: new Map(),
+  };
+  for (let i = 0; i < 1000; i += 1) {
+    const { qualified, eliminated } = simulateEvent(rmrEuASeeding, rmrEuAProbabilities);
+    const results = [...qualified, ...eliminated];
+    categorizedResults = categorizeResults(results, categorizedResults);
+  }
+  console.log(categorizedResults);
 }
 
 main();

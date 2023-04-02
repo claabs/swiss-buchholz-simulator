@@ -1,46 +1,29 @@
-// Inspired by: https://github.com/toshi-toma/eslint-config-airbnb-typescript-prettier/blob/master/index.js
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  env: {
-    es6: true,
+  parserOptions: {
+    project: './tsconfig.json',
   },
-  extends: ['airbnb-base', 'plugin:@typescript-eslint/recommended', 'prettier'],
-  plugins: ['import', 'prettier', '@typescript-eslint'],
+  extends: [
+    'airbnb-base',
+    'airbnb-typescript/base',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:prettier/recommended',
+  ],
+  plugins: ['@typescript-eslint', 'prettier'],
   rules: {
-    // prettier
-    'prettier/prettier': ['error'],
-    // TypeScript
-    '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/explicit-member-accessibility': 'off',
-    '@typescript-eslint/no-object-literal-type-assertion': 'off',
-    // v4 changes
-    'no-use-before-define': 'off',
-    '@typescript-eslint/no-use-before-define': ['error'],
-    'no-shadow': 'off',
-    '@typescript-eslint/no-shadow': ['error'],
-    // custom
-    camelcase: 'off',
-    'no-underscore-dangle': 'off',
     // import
-    'import/no-extraneous-dependencies': ['error', { devDependencies: ['scripts/**'] }],
-    'import/prefer-default-export': 'off',
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        ts: 'never',
-      },
-    ],
+    'import/no-cycle': 'off',
+    // 'import/no-extraneous-dependencies': ['error', { devDependencies: ['scripts/**'] }],
+    // 'import/prefer-default-export': 'off',
+    // 'import/extensions': [
+    //   'error',
+    //   'ignorePackages',
+    //   {
+    //     js: 'never',
+    //     ts: 'never',
+    //   },
+    // ],
   },
-  settings: {
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.ts', '.json'],
-      },
-    },
-    'import/extensions': ['.js', '.ts'],
-  },
-  ignorePatterns: ['dist/**', 'config/**', 'db/**'],
+  ignorePatterns: ['dist/**', '.*rc.js'],
 };
