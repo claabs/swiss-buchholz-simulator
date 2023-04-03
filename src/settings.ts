@@ -42,6 +42,25 @@ export const rmrEuASeeding: Record<string, RmrEuATeam> = {
   16: 'SAW',
 };
 
+export const rmrEuARating: Record<RmrEuATeam, number> = {
+  FaZe: 1.0,
+  Navi: 0.95,
+  VP: 0.9,
+  MOUZ: 0.89,
+  OG: 0.85,
+  fnatic: 0.83,
+  BNE: 0.72,
+  Apeks: 0.7,
+  Sprout: 0.65,
+  SAW: 0.65,
+  GamerLegion: 0.65,
+  '1Win': 0.65,
+  'Into the Breach': 0.6,
+  Falcons: 0.6,
+  B8: 0.55,
+  Viperio: 0.5,
+};
+
 export const rmrEuAProbabilities: MatchupProbability<RmrEuATeam>[] = [
   {
     teamA: 'VP',

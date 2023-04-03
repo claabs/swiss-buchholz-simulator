@@ -1,4 +1,4 @@
-import { MatchupProbability, RmrEuATeam, rmrEuAProbabilities, rmrEuASeeding } from './settings';
+import { MatchupProbability, RmrEuATeam, rmrEuARating, rmrEuASeeding } from './settings';
 
 interface Matchup<T extends string> {
   teamA: TeamStandingWithDifficulty<T>;
@@ -28,6 +28,24 @@ interface TeamResultsCounts<T extends string> {
   allWins: Map<T, number>;
   allLosses: Map<T, number>;
 }
+
+const generateEasyProbabilities = <T extends string>(
+  ratings: Record<T, number>
+): MatchupProbability<T>[] =>
+  Object.entries<number>(ratings).reduce((acc, [team, rating], index, ratingEntries) => {
+    const opposingTeams = ratingEntries.slice(index + 1);
+    const teamMatchupProbs: MatchupProbability<T>[] = opposingTeams.map(([oppTeam, oppRating]) => {
+      const differenceFactor = rating / oppRating;
+      const winRate = differenceFactor / (differenceFactor + 1);
+      return {
+        teamA: team as T,
+        teamB: oppTeam as T,
+        bo1TeamAWinrate: winRate,
+        bo3TeamAWinrate: winRate,
+      };
+    });
+    return acc.concat(teamMatchupProbs);
+  }, [] as MatchupProbability<T>[]);
 
 const splitStandingsToRecordGroups = <T extends string>(
   teamsStandings: TeamStandingWithDifficulty<T>[]
@@ -212,18 +230,40 @@ const simulateEvent = <T extends string>(
   };
 };
 
+const formatResultMap = <T extends string>(
+  resultMap: Map<T, number>,
+  totalRuns: number
+): string[] =>
+  Array.from(resultMap.entries())
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, count]) => `${name}: ${((count / totalRuns) * 100).toFixed(1)}%`);
+
+const formatResultsCounts = <T extends string>(
+  categorizedResults: TeamResultsCounts<T>,
+  totalRuns: number
+): void => {
+  const qualifiedFormat = formatResultMap(categorizedResults.qualified, totalRuns);
+  const allWinsFormat = formatResultMap(categorizedResults.allWins, totalRuns);
+  const allLossesFormat = formatResultMap(categorizedResults.allLosses, totalRuns);
+  console.log('Qualified:', qualifiedFormat);
+  console.log('All Wins:', allWinsFormat);
+  console.log('All Losses:', allLossesFormat);
+};
+
 function main() {
   let categorizedResults: TeamResultsCounts<RmrEuATeam> = {
     allLosses: new Map(),
     allWins: new Map(),
     qualified: new Map(),
   };
-  for (let i = 0; i < 1000; i += 1) {
-    const { qualified, eliminated } = simulateEvent(rmrEuASeeding, rmrEuAProbabilities);
+  const RUN_COUNT = 1000;
+  const rmrEuAEasyProbabilities = generateEasyProbabilities(rmrEuARating);
+  for (let i = 0; i < RUN_COUNT; i += 1) {
+    const { qualified, eliminated } = simulateEvent(rmrEuASeeding, rmrEuAEasyProbabilities);
     const results = [...qualified, ...eliminated];
     categorizedResults = categorizeResults(results, categorizedResults);
   }
-  console.log(categorizedResults);
+  formatResultsCounts(categorizedResults, RUN_COUNT);
 }
 
 main();
