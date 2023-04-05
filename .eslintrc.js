@@ -7,6 +7,7 @@ module.exports = {
   extends: [
     'airbnb-base',
     'airbnb-typescript/base',
+    'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:prettier/recommended',
   ],
@@ -25,5 +26,5 @@ module.exports = {
     //   },
     // ],
   },
-  ignorePatterns: ['dist/**', '.*rc.js'],
+  ignorePatterns: ['dist/**', 'node_modules/**', '!.*rc.js'],
 };

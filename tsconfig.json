@@ -3,14 +3,30 @@
     "@tsconfig/strictest/tsconfig",
     "@tsconfig/node18/tsconfig"
   ],
+  "include": [
+    "**/*.ts",
+    "*.config.js",
+    "*.setup.js",
+    "*.*rc.js"
+  ],
   "compilerOptions": {
+    // override extra strict rules
     "verbatimModuleSyntax": false,
-    "outDir": "./dist", /* Redirect output structure to the directory. */
-    "inlineSourceMap": true, // Inline sourcemaps for jest debugging
+    "exactOptionalPropertyTypes": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "strictPropertyInitialization": false,
+    // enable required features
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    // output
+    "outDir": "./dist",
+    "declaration": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "typeRoots": [
       "node_modules/@types"
     ],
-    "allowJs": true,
   },
   "exclude": [
     "node_modules",

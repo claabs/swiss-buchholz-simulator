@@ -256,7 +256,7 @@ function main() {
     allWins: new Map(),
     qualified: new Map(),
   };
-  const RUN_COUNT = 1000;
+  const RUN_COUNT = 100000;
   const rmrEuAEasyProbabilities = generateEasyProbabilities(rmrEuARating);
   for (let i = 0; i < RUN_COUNT; i += 1) {
     const { qualified, eliminated } = simulateEvent(rmrEuASeeding, rmrEuAEasyProbabilities);
